@@ -17,16 +17,12 @@ public:
         Init();
     }
 
-    ~Poll() {
-        delete _fds;
-    }
-
     void Loop() {
         _isRunning = true;
         while (_isRunning) {
-            int timeout = -1;
+            int timeout = -1;   //-1表示一直阻塞，直到有文件描述符就绪
 
-            int ret = poll(_fds, _num, timeout);
+            int ret = poll(_fds.get(), _num, timeout);
 
             switch (ret)
             {
@@ -42,8 +38,6 @@ public:
             }
         }
     }
-
-
 
 private:
      void Handle() {
@@ -92,7 +86,7 @@ private:
     void Init() {
         _socket = std::make_unique<Socket>();
         _socket->BuildListenSocket(_port);
-        _fds = new pollfd[_num];
+        _fds = std::make_unique<pollfd[]>(_num);
         for(int i = 0; i < _num; ++i) {
             _fds[i].fd = -1;
             _fds[i].events = _fds[i].revents = 0;
@@ -104,7 +98,7 @@ private:
 
 private:
     std::unique_ptr<Socket> _socket;
-    pollfd* _fds;
+    std::unique_ptr<pollfd[]> _fds;
 
     int _num;
     int _port;

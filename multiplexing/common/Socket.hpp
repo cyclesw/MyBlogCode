@@ -42,7 +42,7 @@ public:
         return  n;
     }
 
-    ssize_t Send(std::string& buf, const int size) const {
+    ssize_t Send(std::string& buf, const size_t size) const {
         return ::send(_fd, buf.data(), size, 0);
     }
 

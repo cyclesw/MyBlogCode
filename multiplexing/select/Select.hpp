@@ -11,7 +11,7 @@
 #include <iostream>
 #include <vector>
 
-const int selectNum = 10;
+const int selectNum = 10;   //select 最大管理的文件描述符数量。
 
 class Select {
 public:
@@ -26,6 +26,7 @@ public:
             int fd = _array[i]->Fd();
 
             if(FD_ISSET(fd, &_rfdset)) {
+                //  新连接到来的情况
                 if(fd == _socket.Fd()) {
                     Socket* socket = new Socket(_socket.Accept());
 
@@ -41,6 +42,7 @@ public:
                     if(j == _array.size()) delete socket;
                 }
                 else {
+                    //正常文件读取
                     std::string buf;
                     ssize_t sz = _array[i]->Recv(buf, 1024);
                     if(sz > 0) {
@@ -58,10 +60,10 @@ public:
         }
     }
 
-    void Loop() {
+    void Loop() {   //程序入口
         _isRunning = true;
         while (_isRunning) {
-            FD_ZERO(&_rfdset);
+            FD_ZERO(&_rfdset);  // fd_set 每次使用前都要初始化
             int maxfd = _socket.Fd();
 
             for(int i = 0; i < _array.size(); ++i) {
@@ -77,10 +79,10 @@ public:
             int n = select(maxfd+1, &_rfdset, nullptr, nullptr, &timeout);
             switch (n) {
                 case 0:
-                    std::cout << "multiplexing timeout, last time: " << timeout.tv_sec << ":" << timeout.tv_usec << std::endl;
+                    std::cout << "select timeout, last time: " << timeout.tv_sec << ":" << timeout.tv_usec << std::endl;
                     break;
                 case -1:
-                    std::cerr << "multiplexing error!!!" << std::endl;
+                    std::cerr << "select error!!!" << std::endl;
                     break;
                 default:
                     Handle();
@@ -106,7 +108,7 @@ private:
     fd_set _rfdset;
     bool _isRunning{};
 
-    std::vector<Socket*> _array{};
+    std::vector<Socket*> _array{};  //使用vector来管理文件描述符
 };
 
 
